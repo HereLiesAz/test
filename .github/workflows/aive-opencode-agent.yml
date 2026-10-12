@@ -43,7 +43,11 @@ jobs:
       # The agent runs as its own unprivileged user: it cannot read the runner's environment
       # (/proc/<pid>/environ is owner-only) or change the runner's git configuration.
       - name: Isolate the agent
-        run: sudo useradd --create-home --shell /bin/bash aive-agent
+        # The checkout lives under the runner's home; the agent may traverse (not list) the
+        # directories above it. The token is only ever in the runner's environment, never on disk.
+        run: |
+          sudo useradd --create-home --shell /bin/bash aive-agent
+          sudo chmod o+x "$HOME" "$(dirname "$GITHUB_WORKSPACE")" "$GITHUB_WORKSPACE/.."
 
       - name: Run OpenCode
         shell: bash
